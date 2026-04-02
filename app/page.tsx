@@ -88,7 +88,7 @@ export default function Page() {
             <div className="max-w-sm bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
               <p className="text-sm text-foreground">
                 Aaj Sharma Medical Store ki visit kaisi rahi? Owner ka mood
-                kaisa tha — cooperative tha ya kuch tension thi?
+                kaisa tha? cooperative tha ya kuch tension thi?
               </p>
               <p className="text-xs text-muted-foreground mt-1.5">
                 Priya · Field Agent
@@ -252,7 +252,7 @@ export default function Page() {
             <span className="text-foreground font-medium">
               Bolna&apos;s Hindi native voice stack
             </span>{" "}
-            — which means she understands Hinglish, handles Indian telephony
+            which means she understands Hinglish, handles Indian telephony
             natively, and works across accents. No translation layer. No generic
             TTS. This only works because of what Bolna built.
           </p>
