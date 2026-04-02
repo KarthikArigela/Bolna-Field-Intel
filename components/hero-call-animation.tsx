@@ -4,12 +4,20 @@ import { useEffect, useState } from "react"
 
 const WAVE_DELAYS = [0, 0.15, 0.3, 0.15, 0]
 
+const MAX_SECONDS = 179 // 2:59 — we claim < 3 mins
+
 export function HeroCallAnimation() {
   const [seconds, setSeconds] = useState(0)
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSeconds((s) => s + 1)
+      setSeconds((s) => {
+        if (s >= MAX_SECONDS) {
+          clearInterval(interval)
+          return MAX_SECONDS
+        }
+        return s + 1
+      })
     }, 1000)
     return () => clearInterval(interval)
   }, [])

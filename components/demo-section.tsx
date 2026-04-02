@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 
 type FormData = {
@@ -35,6 +35,14 @@ export function DemoSection() {
   const [submittedEmail, setSubmittedEmail] = useState("")
   const [errorMsg, setErrorMsg] = useState("")
 
+  // Refs to avoid stale closures inside polling interval
+  const statusRef = useRef<CallStatus>("idle")
+  const startTimeRef = useRef<number>(0)
+
+  useEffect(() => {
+    statusRef.current = status
+  }, [status])
+
   function updateField(key: keyof FormData, value: string) {
     setForm((f) => ({ ...f, [key]: value }))
   }
@@ -68,16 +76,23 @@ export function DemoSection() {
   }
 
   function startPolling(id: string) {
-    let attempts = 0
-    const MAX = 60 // 3 min
+    startTimeRef.current = Date.now()
 
     const interval = setInterval(async () => {
-      attempts++
-      if (attempts > MAX) {
+      const elapsed = (Date.now() - startTimeRef.current) / 1000
+      const current = statusRef.current
+
+      // Hard timeout after 5 minutes
+      if (elapsed > 300) {
         clearInterval(interval)
         setStatus("error")
         setErrorMsg("Call timed out. Please try again.")
         return
+      }
+
+      // Time-based: if still "calling" after 25s, they've likely answered
+      if (current === "calling" && elapsed > 25) {
+        setStatus("connected")
       }
 
       try {
@@ -93,17 +108,20 @@ export function DemoSection() {
         const s = (data.status ?? "").toLowerCase()
         const ss = (data.smart_status ?? "").toLowerCase()
 
-        if (s === "in_progress" || ss.includes("connected")) {
-          setStatus("connected")
-        } else if (s === "processing" || ss.includes("processing")) {
+        if (s === "completed" || ss.includes("completed")) {
+          // Show "processing" briefly before "done" so the transition feels right
           setStatus("processing")
-        } else if (s === "completed" || ss.includes("completed")) {
-          setStatus("done")
           clearInterval(interval)
+          setTimeout(() => setStatus("done"), 2500)
         } else if (s === "failed" || ss.includes("failed")) {
           setStatus("error")
           setErrorMsg("Call failed. Please try again.")
           clearInterval(interval)
+        } else if (
+          (s === "in_progress" || ss.includes("in_progress")) &&
+          current === "calling"
+        ) {
+          setStatus("connected")
         }
       } catch {
         // silently retry on network error
@@ -164,7 +182,10 @@ export function DemoSection() {
         <p className="text-muted-foreground text-lg">
           Enter your number. Priya will call you in 30 seconds.
           <br />
-          Answer in Hindi or English. Check your inbox.
+          Speak Hindi. Check your inbox.
+        </p>
+        <p className="text-xs text-muted-foreground mt-2">
+          Pretend you&apos;re a field rep finishing a retailer visit.
         </p>
       </div>
 

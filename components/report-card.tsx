@@ -89,9 +89,10 @@ export function ReportCard({ data }: { data: ReportData }) {
             💡 LLM Insight Prompt
           </p>
           <p className="text-xs text-muted-foreground">
-            Forward this report to Claude or ChatGPT: &quot;Based on this field
-            visit report, what are the top 3 actions the area sales manager
-            should take this week?&quot;
+            Paste 50 reports like this into Claude or ChatGPT:{" "}
+            &quot;Across these visits, what are the top 3 patterns my ASMs
+            should act on this week?&quot; — Priya gives you the raw data. You
+            get the pattern.
           </p>
         </div>
       </div>
