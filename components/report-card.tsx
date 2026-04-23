@@ -1,41 +1,17 @@
+import { cn } from "@/lib/utils"
+
 export const reportData = {
   rep: "Rajesh Kumar",
   retailer: "Sharma Medical Store",
   location: "Pune, Maharashtra",
   duration: "116s",
   fields: [
-    {
-      label: "Retailer Mood",
-      value:
-        "Owner was cooperative and in a good mood, no tension during the visit.",
-      color: "bg-green-500",
-    },
-    {
-      label: "Complaint",
-      value: "Two strips of paracetamol were missing in the last delivery.",
-      color: "bg-yellow-500",
-    },
-    {
-      label: "Competitor Activity",
-      value: "MedX representative visited with a new paracetamol offer.",
-      color: "bg-orange-500",
-    },
-    {
-      label: "Order Details",
-      value:
-        "Three strips of paracetamol ordered. Cough syrup was refused.",
-      color: "bg-blue-500",
-    },
-    {
-      label: "Follow Up",
-      value: "Delivery issue needs escalation to logistics team.",
-      color: "bg-red-500",
-    },
-    {
-      label: "Summary",
-      value: "Visit went well overall. Key action is delivery escalation.",
-      color: "bg-primary",
-    },
+    { label: "Mood",       value: "Owner was cooperative and in a good mood — no tension during the visit.",              tagClass: "mood"       },
+    { label: "Complaint",  value: "Two strips of paracetamol missing in the last delivery. Flagged for logistics.",       tagClass: "complaint"  },
+    { label: "Competitor", value: "MedX representative visited yesterday with a new paracetamol pricing offer.",          tagClass: "competitor" },
+    { label: "Order",      value: "Paracetamol ×3 strips ordered. Cough syrup refused — perceived as over-priced.",      tagClass: "order"      },
+    { label: "Follow-up",  value: "Logistics escalation: paracetamol short-supply. ASM to call back within 24 hours.",   tagClass: "followup"   },
+    { label: "Summary",    value: "Visit went well overall. Key action: delivery escalation & MedX pricing check.",      tagClass: "summary"    },
   ],
 }
 
@@ -43,58 +19,62 @@ type ReportData = typeof reportData
 
 export function ReportCard({ data }: { data: ReportData }) {
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden">
+    <div className="bg-white border-2 border-plum rounded-2xl overflow-hidden shadow-brutal">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-border bg-muted/30">
-        <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
-          <span>
-            <span className="font-medium text-foreground">Rep:</span> {data.rep}
-          </span>
-          <span>
-            <span className="font-medium text-foreground">Retailer:</span>{" "}
-            {data.retailer}
-          </span>
-          <span>
-            <span className="font-medium text-foreground">Location:</span>{" "}
-            {data.location}
-          </span>
-          <span>
-            <span className="font-medium text-foreground">Duration:</span>{" "}
-            {data.duration}
-          </span>
-        </div>
+      <div className="bg-plum px-5 py-4 flex flex-wrap gap-x-6 gap-y-1">
+        {[
+          ["Rep",      data.rep],
+          ["Retailer", data.retailer],
+          ["Location", data.location],
+          ["Duration", data.duration],
+        ].map(([k, v]) => (
+          <div key={k} className="text-xs text-yellow/70 uppercase tracking-widest font-bold">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-yellow mr-1.5 align-middle" />
+            {k}
+            <span className="block font-heading text-base text-white/95 normal-case tracking-normal mt-0.5">
+              {v}
+            </span>
+          </div>
+        ))}
       </div>
 
       {/* Fields */}
-      <div className="divide-y divide-border">
-        {data.fields.map((field) => (
-          <div key={field.label} className="flex gap-3 px-5 py-4">
-            <div
-              className={`w-1 rounded-full flex-shrink-0 self-stretch ${field.color}`}
-            />
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                {field.label}
-              </p>
-              <p className="text-sm text-foreground">{field.value}</p>
-            </div>
+      <div className="divide-y divide-dashed divide-plum/20">
+        {data.fields.map((f) => (
+          <div key={f.label} className="flex gap-3 px-5 py-4 items-start">
+            {/* Pill tag — colour varies by tagClass */}
+            <span
+              className={cn(
+                "flex-shrink-0 mt-0.5 rounded-full border-2 border-plum px-3 py-1",
+                "text-[11px] font-bold uppercase tracking-wider text-plum",
+                "shadow-[2px_2px_0_0_var(--plum)] whitespace-nowrap",
+                {
+                  "bg-[#C9E8D1]": f.tagClass === "mood",
+                  "bg-[#FFD8A8]": f.tagClass === "complaint",
+                  "bg-[#FAE3B7]": f.tagClass === "competitor",
+                  "bg-[#CDE4F5]": f.tagClass === "order",
+                  "bg-[#F9D1CB]": f.tagClass === "followup",
+                  "bg-plum !text-white shadow-[2px_2px_0_0_rgba(58,0,29,.4)]": f.tagClass === "summary",
+                }
+              )}
+            >
+              {f.label}
+            </span>
+            <p className="text-sm text-plum leading-relaxed">{f.value}</p>
           </div>
         ))}
       </div>
 
       {/* LLM Prompt Box */}
-      <div className="px-5 py-4">
-        <div className="rounded-lg border-2 border-dashed border-green-500/40 bg-green-500/5 px-4 py-3">
-          <p className="text-xs font-medium text-green-600 dark:text-green-400 mb-1">
-            💡 LLM Insight Prompt
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Paste 50 reports like this into Claude or ChatGPT:{" "}
-            &quot;Across these visits, what are the top 3 patterns my ASMs
-            should act on this week?&quot; — Priya gives you the raw data. You
-            get the pattern.
-          </p>
-        </div>
+      <div className="mx-5 mb-5 border-2 border-dashed border-plum rounded-[18px] bg-yellow p-4 shadow-[3px_3px_0_0_var(--plum)]">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-plum mb-1.5">
+          💡 Pro Tip · LLM Insight
+        </p>
+        <p className="text-xs text-plum leading-relaxed">
+          Paste 50 reports like this into Claude or ChatGPT:{" "}
+          <em>&quot;Across these visits, what are the top 3 patterns my ASMs should act on this week?&quot;</em>
+          {" "}— Priya gives you the raw data. You extract the pattern.
+        </p>
       </div>
     </div>
   )

@@ -21,7 +21,7 @@ type CallStatus =
   | "error"
 
 const inputClass =
-  "h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+  "h-[46px] w-full border-2 border-plum rounded-[14px] bg-white px-3.5 text-[15px] font-sans text-plum placeholder:text-plum/40 focus:outline-none shadow-[3px_3px_0_0_var(--plum)] focus:-translate-x-px focus:-translate-y-px focus:shadow-[4px_4px_0_0_var(--plum)] transition-[transform,box-shadow]"
 
 export function DemoSection() {
   const [form, setForm] = useState<FormData>({
@@ -35,7 +35,6 @@ export function DemoSection() {
   const [submittedEmail, setSubmittedEmail] = useState("")
   const [errorMsg, setErrorMsg] = useState("")
 
-  // Refs to avoid stale closures inside polling interval
   const statusRef = useRef<CallStatus>("idle")
   const startTimeRef = useRef<number>(0)
 
@@ -60,12 +59,8 @@ export function DemoSection() {
       })
       const data: { call_id?: string; error?: string } = await res.json()
 
-      if (!res.ok || data.error) {
-        throw new Error(data.error ?? "Failed to initiate call")
-      }
-      if (!data.call_id) {
-        throw new Error("No call ID returned")
-      }
+      if (!res.ok || data.error) throw new Error(data.error ?? "Failed to initiate call")
+      if (!data.call_id) throw new Error("No call ID returned")
 
       setStatus("calling")
       startPolling(data.call_id)
@@ -82,7 +77,6 @@ export function DemoSection() {
       const elapsed = (Date.now() - startTimeRef.current) / 1000
       const current = statusRef.current
 
-      // Hard timeout after 5 minutes
       if (elapsed > 300) {
         clearInterval(interval)
         setStatus("error")
@@ -90,18 +84,11 @@ export function DemoSection() {
         return
       }
 
-      // Time-based: if still "calling" after 25s, they've likely answered
-      if (current === "calling" && elapsed > 25) {
-        setStatus("connected")
-      }
+      if (current === "calling" && elapsed > 25) setStatus("connected")
 
       try {
         const res = await fetch(`/api/call-status/${id}`)
-        const data: {
-          status?: string
-          smart_status?: string
-          error?: string
-        } = await res.json()
+        const data: { status?: string; smart_status?: string; error?: string } = await res.json()
 
         if (data.error) return
 
@@ -109,7 +96,6 @@ export function DemoSection() {
         const ss = (data.smart_status ?? "").toLowerCase()
 
         if (s === "completed" || ss.includes("completed")) {
-          // Show "processing" briefly before "done" so the transition feels right
           setStatus("processing")
           clearInterval(interval)
           setTimeout(() => setStatus("done"), 2500)
@@ -117,10 +103,7 @@ export function DemoSection() {
           setStatus("error")
           setErrorMsg("Call failed. Please try again.")
           clearInterval(interval)
-        } else if (
-          (s === "in_progress" || ss.includes("in_progress")) &&
-          current === "calling"
-        ) {
+        } else if ((s === "in_progress" || ss.includes("in_progress")) && current === "calling") {
           setStatus("connected")
         }
       } catch {
@@ -134,71 +117,41 @@ export function DemoSection() {
     setErrorMsg("")
   }
 
-  const displayPhone = form.phone_number
-    ? `+91${form.phone_number}`
-    : "+91XXXXXXXXXX"
+  const displayPhone = form.phone_number ? `+91${form.phone_number}` : "+91XXXXXXXXXX"
 
-  const statusDisplay: Record<
-    Exclude<CallStatus, "idle">,
-    { icon: string; label: string; sub?: string }
-  > = {
-    initiating: {
-      icon: "⏳",
-      label: "Initiating call...",
-      sub: "Keep your phone nearby.",
-    },
-    calling: {
-      icon: "📞",
-      label: `Calling ${displayPhone}...`,
-      sub: "Priya will connect shortly.",
-    },
-    connected: {
-      icon: "✅",
-      label: "Connected",
-      sub: "Priya is asking questions. Answer naturally.",
-    },
-    processing: {
-      icon: "🔄",
-      label: "Processing debrief...",
-      sub: "Your report is being generated.",
-    },
-    done: {
-      icon: "✉️",
-      label: `Report sent to ${submittedEmail}`,
-      sub: "Check your inbox.",
-    },
-    error: {
-      icon: "❌",
-      label: errorMsg || "Something went wrong",
-    },
+  const statusDisplay: Record<Exclude<CallStatus, "idle">, { icon: string; label: string; sub?: string }> = {
+    initiating: { icon: "⏳", label: "Initiating call...", sub: "Keep your phone nearby." },
+    calling:    { icon: "📞", label: `Calling ${displayPhone}...`, sub: "Priya will connect shortly." },
+    connected:  { icon: "✅", label: "Connected", sub: "Priya is asking questions. Answer naturally." },
+    processing: { icon: "🔄", label: "Processing debrief...", sub: "Your report is being generated." },
+    done:       { icon: "✉️", label: `Report sent to ${submittedEmail}`, sub: "Check your inbox." },
+    error:      { icon: "❌", label: errorMsg || "Something went wrong" },
   }
 
   return (
-    <section id="demo" className="max-w-2xl mx-auto px-4 py-20">
-      <div className="text-center mb-10">
-        <h2 className="text-3xl md:text-4xl font-bold font-heading text-foreground mb-3">
-          Try it on yourself.
+    <section id="demo" className="max-w-[1200px] mx-auto px-7 pb-[72px]">
+      <div className="max-w-[720px] mx-auto mb-10 text-center">
+        <span className="inline-flex items-center gap-2 border-2 border-plum bg-background rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-plum mb-4 shadow-brutal-sm">
+          <span className="w-2 h-2 rounded-full bg-pink inline-block" />
+          Try it on yourself
+        </span>
+        <h2 className="font-heading text-4xl md:text-5xl font-normal leading-[1.05] tracking-tight text-plum mb-3">
+          Enter your number.<br /><em>Priya calls in 30 seconds.</em>
         </h2>
-        <p className="text-muted-foreground text-lg">
-          Enter your number. Priya will call you in 30 seconds.
-          <br />
-          Speak Hindi. Check your inbox.
-        </p>
-        <p className="text-xs text-muted-foreground mt-2">
-          Pretend you&apos;re a field rep finishing a retailer visit.
+        <p className="text-[17px] leading-relaxed text-plum/80">
+          Pretend you&apos;re a field rep finishing a retailer visit. Speak Hindi, Hinglish, anything.
+          Your report will be in your inbox before the page scrolls.
         </p>
       </div>
 
       {status === "idle" ? (
         <form
           onSubmit={handleSubmit}
-          className="bg-card border border-border rounded-2xl p-6 flex flex-col gap-4"
+          className="max-w-[680px] mx-auto bg-peach border-2 border-plum rounded-[28px] p-9 shadow-brutal-lg"
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-foreground">
-                Your Name
-              </label>
+              <label className="text-sm font-semibold text-plum tracking-wide">Your name</label>
               <input
                 type="text"
                 required
@@ -209,9 +162,7 @@ export function DemoSection() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-foreground">
-                Retailer Name
-              </label>
+              <label className="text-sm font-semibold text-plum tracking-wide">Retailer name</label>
               <input
                 type="text"
                 required
@@ -222,9 +173,7 @@ export function DemoSection() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-foreground">
-                Your Location
-              </label>
+              <label className="text-sm font-semibold text-plum tracking-wide">Your location</label>
               <input
                 type="text"
                 required
@@ -235,11 +184,9 @@ export function DemoSection() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-foreground">
-                Phone Number
-              </label>
+              <label className="text-sm font-semibold text-plum tracking-wide">Phone number</label>
               <div className="flex">
-                <span className="inline-flex items-center px-3 h-9 rounded-l-lg border border-r-0 border-input bg-muted text-sm text-muted-foreground select-none">
+                <span className="inline-flex items-center h-[46px] px-3.5 border-2 border-r-0 border-plum rounded-l-[14px] bg-yellow font-bold text-sm text-plum select-none">
                   +91
                 </span>
                 <input
@@ -249,22 +196,15 @@ export function DemoSection() {
                   pattern="[0-9]{10}"
                   maxLength={10}
                   value={form.phone_number}
-                  onChange={(e) =>
-                    updateField(
-                      "phone_number",
-                      e.target.value.replace(/\D/g, "")
-                    )
-                  }
-                  className="flex-1 h-9 rounded-r-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  onChange={(e) => updateField("phone_number", e.target.value.replace(/\D/g, ""))}
+                  className="flex-1 h-[46px] border-2 border-plum rounded-r-[14px] bg-white px-3.5 text-[15px] font-sans text-plum placeholder:text-plum/40 focus:outline-none shadow-[3px_3px_0_0_var(--plum)] focus:shadow-[4px_4px_0_0_var(--plum)] transition-[transform,box-shadow]"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground">
-              Email (for report)
-            </label>
+          <div className="flex flex-col gap-1.5 mt-4">
+            <label className="text-sm font-semibold text-plum tracking-wide">Email (for the report)</label>
             <input
               type="email"
               required
@@ -275,25 +215,22 @@ export function DemoSection() {
             />
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            ⚠️ This places a real call to your number. ~2 minutes in
-            Hindi/Hinglish.
+          <div className="flex gap-3.5 mt-6 justify-center flex-wrap">
+            <Button type="submit" size="lg">Call me now</Button>
+            <Button asChild size="lg" variant="outline">
+              <a href="#report">See a sample first</a>
+            </Button>
+          </div>
+          <p className="text-xs text-plum/75 mt-3.5 text-center">
+            ⚠️ This places a real call to your number. ~3 minutes, in Hindi/Hinglish.
           </p>
-
-          <Button type="submit" size="lg" className="w-full">
-            🎙️ Call Me Now
-          </Button>
         </form>
       ) : (
-        <div className="bg-card border border-border rounded-2xl p-10 flex flex-col items-center gap-3 text-center">
+        <div className="max-w-[680px] mx-auto bg-mint border-2 border-plum rounded-[28px] p-10 flex flex-col items-center gap-3 text-center shadow-brutal-lg">
           <div className="text-5xl">{statusDisplay[status].icon}</div>
-          <p className="text-foreground font-medium text-lg">
-            {statusDisplay[status].label}
-          </p>
+          <p className="text-plum font-bold text-lg font-heading">{statusDisplay[status].label}</p>
           {statusDisplay[status].sub && (
-            <p className="text-sm text-muted-foreground">
-              {statusDisplay[status].sub}
-            </p>
+            <p className="text-sm text-plum/70">{statusDisplay[status].sub}</p>
           )}
           {(status === "done" || status === "error") && (
             <Button variant="outline" size="sm" onClick={reset} className="mt-2">

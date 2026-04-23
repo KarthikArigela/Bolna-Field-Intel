@@ -1,31 +1,43 @@
-import { Geist, Geist_Mono, DM_Sans, Raleway } from "next/font/google"
+import { DM_Sans, DM_Serif_Display, JetBrains_Mono } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
-const ralewayHeading = Raleway({subsets:['latin'],variable:'--font-heading'});
+const fontHeading = DM_Serif_Display({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-heading",
+})
 
-const dmSans = DM_Sans({subsets:['latin'],variable:'--font-sans'})
+const fontSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
+})
 
-const fontMono = Geist_Mono({
+const fontMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 })
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", dmSans.variable, ralewayHeading.variable)}
+      className={cn(
+        "antialiased",
+        fontSans.variable,
+        fontHeading.variable,
+        fontMono.variable,
+        "font-sans"
+      )}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider forcedTheme="light" enableSystem={false}>{children}</ThemeProvider>
       </body>
     </html>
   )
